@@ -1,3 +1,24 @@
+# 🔥 Querykiln — AI-Powered SEO Desktop Toolkit
+
+Querykiln is a modern SEO toolkit that runs locally on your desktop, powered by AI.
+
+## 🚀 Features
+- Keyword Research
+- AI-Powered Content Insights
+- SERP Snapshotting
+- PDF & Image Exports
+- Works on macOS, Windows, and Linux
+
+## 🛠 Development
+
+Install dependencies:
+npm install
+
+Run desktop version in dev mode:
+npm run desktop-dev
+
+Build installers:
+npm run desktop-build
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
