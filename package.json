@@ -1,60 +1,71 @@
 {
   "name": "querykiln",
   "version": "0.0.6",
-  "description": "Querykiln — AI-powered SEO desktop toolkit",
-  "author": {
-    "name": "Querykiln",
-    "email": "gerkinonfire@googlemail.com"
-  },
+  "description": "Querykiln Desktop Application",
+  "main": "dist/electron/main/index.js",
+  "author": "Querykiln",
   "license": "MIT",
-
-  "type": "module",
-  "main": "electron/main.cjs",
 
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "electron": "electron electron/main.cjs",
-    "desktop-dev": "concurrently \"npm run dev\" \"npm run electron\"",
+    "postinstall": "electron-builder install-app-deps",
 
+    "desktop-dev": "cross-env NODE_ENV=development electron .",
     "desktop-build-mac": "electron-builder --mac dmg zip",
     "desktop-build-win-all": "electron-builder --win nsis --x64 --arm64",
-    "desktop-build-linux-all": "electron-builder --linux AppImage deb --x64 --arm64",
+    "desktop-build-linux-all": "electron-builder --linux AppImage deb rpm snap",
+    "desktop-publish": "electron-builder --publish always"
+  },
 
-    "dist": "vite build && electron-builder"
+  "dependencies": {
+    "electron-updater": "^6.3.8"
+  },
+
+  "devDependencies": {
+    "electron": "39.2.0",
+    "electron-builder": "^25.1.8",
+    "@electron/rebuild": "^3.4.1",
+    "vite": "^5.0.0",
+    "cross-env": "^7.0.3"
   },
 
   "build": {
-    "appId": "com.querykiln.desktop",
+    "appId": "com.querykiln.app",
     "productName": "Querykiln",
-
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
     "directories": {
+      "buildResources": "build",
       "output": "release"
     },
 
-    "files": [
-      "dist/**/*",
-      "electron/**/*",
-      "package.json"
-    ],
-
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "Querykiln",
-        "repo": "Querykiln"
-      }
-    ],
+    "publish": {
+      "provider": "github",
+      "owner": "Querykiln",
+      "repo": "Querykiln",
+      "releaseType": "draft"
+    },
 
     "mac": {
+      "target": ["dmg", "zip"],
       "category": "public.app-category.productivity",
       "icon": "build/Icons/icon.icns",
-      "target": ["dmg", "zip"]
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+
+    "dmg": {
+      "sign": false
     },
 
     "win": {
       "icon": "build/Icons/querykiln_icon.ico",
+      "compression": "store",
       "target": [
         {
           "target": "nsis",
@@ -63,50 +74,16 @@
       ]
     },
 
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "differentialPackage": false
+    },
+
     "linux": {
-      "category": "Utility",
       "icon": "build/Icons",
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": ["x64", "arm64"]
-        },
-        {
-          "target": "deb",
-          "arch": ["x64", "arm64"]
-        }
-      ]
+      "target": ["AppImage", "deb", "rpm"],
+      "category": "Utility"
     }
-  },
-
-  "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "electron-log": "^5.4.3",
-    "electron-updater": "^6.6.2",
-    "jspdf": "^3.0.3",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^7.9.6",
-    "recharts": "^3.4.1"
-  },
-
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@tailwindcss/postcss": "^4.1.17",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^5.1.0",
-    "autoprefixer": "^10.4.22",
-    "concurrently": "^8.2.2",
-    "electron": "^39.2.0",
-    "electron-builder": "^25.1.8",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.17",
-    "vite": "^7.2.2"
   }
 }
