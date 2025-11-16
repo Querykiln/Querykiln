@@ -1,81 +1,89 @@
 {
   "name": "querykiln",
-  "version": "0.0.1",
+  "productName": "Querykiln",
   "description": "Querykiln — AI-powered SEO desktop toolkit",
-  "author": "Querykiln",
-  "license": "MIT",
-
+  "author": {
+    "name": "Gethin Jones",
+    "email": "gerkinonfire@googlemail.com"
+  },
+  "version": "0.0.1",
   "type": "module",
   "main": "electron/main.cjs",
-
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "electron": "electron electron/main.cjs",
     "desktop-dev": "concurrently \"npm run dev\" \"npm run electron\"",
-
-    "desktop-build-mac": "electron-builder --mac dmg zip",
+    "desktop-build": "vite build && electron-builder",
+    "desktop-build-win-x64": "electron-builder --win nsis --x64",
+    "desktop-build-win-arm64": "electron-builder --win nsis --arm64",
     "desktop-build-win-all": "electron-builder --win nsis --x64 --arm64",
-    "desktop-build-linux-all": "electron-builder --linux AppImage deb --x64 --arm64",
-
-    "dist": "vite build && electron-builder"
+    "desktop-build-linux-x64": "electron-builder --linux AppImage deb --x64",
+    "desktop-build-linux-arm64": "electron-builder --linux AppImage deb --arm64",
+    "desktop-build-linux-all": "electron-builder --linux AppImage deb --x64 --arm64"
   },
-
   "build": {
-    "appId": "com.querykiln.desktop",
-    "productName": "Querykiln",
+  "appId": "com.querykiln.app",
+  "productName": "Querykiln",
 
-    "directories": {
-      "output": "release"
-    },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "Querykiln",
+      "repo": "Querykiln"
+    }
+  ],
 
+  "directories": {
+    "output": "release"
+  },
     "files": [
       "dist/**/*",
       "electron/**/*",
       "package.json"
     ],
-
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "Querykiln",
-        "repo": "Querykiln"
-      }
-    ],
-
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "build/Icons/icon.icns",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
-
     "win": {
       "icon": "build/Icons/querykiln_icon.ico",
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
-
     "linux": {
       "category": "Utility",
       "icon": "build/Icons",
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "deb",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     }
   },
-
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "electron-log": "^5.4.3",
@@ -87,7 +95,6 @@
     "react-router-dom": "^7.9.6",
     "recharts": "^3.4.1"
   },
-
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tailwindcss/postcss": "^4.1.17",
