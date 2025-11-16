@@ -25,19 +25,31 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build App
+      # macOS build
+      - name: Build macOS
+        if: matrix.os == 'macos-latest'
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           AUTO_UPDATE_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
-        run: |
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            npm run desktop-build-mac
-          elif [ "$RUNNER_OS" = "Windows" ]; then
-            npm run desktop-build-win-all
-          else
-            npm run desktop-build-linux-all
-          fi
+        run: npm run desktop-build-mac
 
+      # Windows build
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          AUTO_UPDATE_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
+        run: npm run desktop-build-win-all
+
+      # Linux build
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          AUTO_UPDATE_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
+        run: npm run desktop-build-linux-all
+
+      # Upload release files
       - name: Upload artifacts
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
