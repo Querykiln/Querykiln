@@ -1,4 +1,4 @@
-name: Build and Publish Release
+name: Build and Release
 
 on:
   push:
@@ -6,36 +6,65 @@ on:
       - "v*"
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-
+  build-mac:
+    runs-on: macos-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: npm
 
-      - name: Install dependencies
-        run: npm install
+      - run: npm install
+      - run: npm run dist   # builds mac dmg & zip
 
-      - name: Build application
-        run: npm run dist
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: release/*.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Artifacts
-        uses: softprops/action-gh-release@v1
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm install
+      - run: npm run desktop-build-win-all
+
+      - uses: softprops/action-gh-release@v1
         with:
           files: |
-            release/*.dmg
+            release/*.exe
             release/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm install
+      - run: npm run desktop-build-linux-all
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
             release/*.AppImage
             release/*.deb
-            release/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
