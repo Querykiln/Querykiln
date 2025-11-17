@@ -2,7 +2,6 @@
   "name": "querykiln",
   "version": "0.0.6",
   "description": "Querykiln Desktop Application",
-  "main": "dist/electron/main/index.js",
   "author": "Querykiln",
   "license": "MIT",
 
@@ -31,41 +30,37 @@
   },
 
   "build": {
-    "appId": "com.querykiln.app",
+    "appId": "com.querykiln.desktop",
     "productName": "Querykiln",
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "node_modules/**/*",
-      "package.json"
-    ],
+
     "directories": {
-      "buildResources": "build",
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
 
-    "publish": {
-      "provider": "github",
-      "owner": "Querykiln",
-      "repo": "Querykiln",
-      "releaseType": "draft"
+    "files": [
+      "**/*",
+      "!**/*.map"
+    ],
+
+    "extraMetadata": {
+      "main": "electron/main.cjs"
     },
+
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Querykiln",
+        "repo": "Querykiln"
+      }
+    ],
 
     "mac": {
       "target": ["dmg", "zip"],
-      "category": "public.app-category.productivity",
-      "icon": "build/Icons/icon.icns",
-      "hardenedRuntime": false,
-      "gatekeeperAssess": false
-    },
-
-    "dmg": {
-      "sign": false
+      "category": "public.app-category.productivity"
     },
 
     "win": {
-      "icon": "build/Icons/querykiln_icon.ico",
-      "compression": "store",
       "target": [
         {
           "target": "nsis",
@@ -74,16 +69,10 @@
       ]
     },
 
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "differentialPackage": false
-    },
-
     "linux": {
-      "icon": "build/Icons",
-      "target": ["AppImage", "deb", "rpm"],
-      "category": "Utility"
+      "target": ["AppImage", "deb", "rpm", "snap"],
+      "category": "Utility",
+      "executableName": "querykiln"
     }
   }
 }
