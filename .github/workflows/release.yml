@@ -6,7 +6,8 @@ on:
       - "v*"
 
 jobs:
-  build:
+  release:
+    name: Build for macOS, Windows & Linux
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -14,7 +15,7 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node
@@ -25,35 +26,25 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # macOS build
-      - name: Build macOS
-        if: matrix.os == 'macos-latest'
+      # Build the app (uses your existing package.json script)
+      - name: Build Electron App
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          AUTO_UPDATE_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
-        run: npm run desktop-build-mac
+        run: npm run build
 
-      # Windows build
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          AUTO_UPDATE_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
-        run: npm run desktop-build-win-all
-
-      # Linux build
-      - name: Build Linux
-        if: matrix.os == 'ubuntu-latest'
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          AUTO_UPDATE_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
-        run: npm run desktop-build-linux-all
-
-      # Upload release files
-      - name: Upload artifacts
+      # Upload artifacts when tag is pushed
+      - name: Upload Release Artifacts
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: release/**
+          files: |
+            release/**/*.dmg
+            release/**/*.zip
+            release/**/*.exe
+            release/**/*.msi
+            release/**/*.AppImage
+            release/**/*.deb
+            release/**/*.rpm
+            release/**/*.snap
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

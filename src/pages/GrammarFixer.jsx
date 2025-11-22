@@ -1,16 +1,93 @@
+import React, { useState } from "react";
+import PageHeader from "../components/PageHeader";
+import { toast } from "react-hot-toast";
+import { FiCopy } from "react-icons/fi";
+
 export default function GrammarFixer() {
+  const [text, setText] = useState("");
+  const [fixedText, setFixedText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  /* -------------------------------------------------------
+     RUN GRAMMAR FIX (Worker API)
+  ------------------------------------------------------- */
+  const handleGrammarFix = async () => {
+    if (!text.trim()) {
+      toast.error("Please enter text to fix.");
+      return;
+    }
+
+    setLoading(true);
+    toast.loading("Fixing grammar…", { id: "gf" });
+
+    try {
+      const res = await window.api.sendSecureRequest("/grammar", { text });
+
+      if (res?.error) {
+        toast.error(res.error, { id: "gf" });
+        setLoading(false);
+        return;
+      }
+
+      setFixedText(res.output || "");
+      toast.success("Grammar fixed!", { id: "gf" });
+    } catch (err) {
+      console.error(err);
+      toast.error("Grammar fixer failed", { id: "gf" });
+    }
+
+    setLoading(false);
+  };
+
+  /* -------------------------------------------------------
+     COPY OUTPUT
+  ------------------------------------------------------- */
+  const copyOutput = () => {
+    if (!fixedText) return;
+    navigator.clipboard.writeText(fixedText);
+    toast.success("Copied to clipboard!");
+  };
+
   return (
-    <div className="max-w-5xl mx-auto bg-white text-gray-900 min-h-screen p-6">
+    <div className="page-container">
+      <PageHeader
+        title="Grammar Fixer"
+        description="Fix grammar, spelling, clarity, and punctuation."
+      />
 
-      <h2 className="text-2xl font-bold mb-3">Grammar Fixer</h2>
+      {/* INPUT CARD */}
+      <div className="card">
+        <h3 className="card-title">Original Text</h3>
 
-      <p className="text-gray-600 mb-4">
-        Automatically fix grammar errors, typos, clarity, and readability.
-      </p>
+        <textarea
+          className="input-textarea"
+          placeholder="Enter text to fix…"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
 
-      <div className="bg-gray-100 rounded-xl p-6 shadow-sm">
-        Grammar engine coming soon.
+        <button
+          className={`btn-primary ${loading ? "btn-disabled" : ""}`}
+          disabled={loading}
+          onClick={handleGrammarFix}
+        >
+          {loading ? "Fixing…" : "Fix Grammar"}
+        </button>
       </div>
+
+      {/* OUTPUT CARD */}
+      {fixedText && (
+        <div className="card">
+          <div className="card-title" style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>Corrected Text</span>
+            <button className="btn-icon" onClick={copyOutput}>
+              <FiCopy size={18} />
+            </button>
+          </div>
+
+          <textarea className="output-textarea" value={fixedText} readOnly />
+        </div>
+      )}
     </div>
   );
 }

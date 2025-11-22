@@ -1,11 +1,25 @@
-import { useState } from "react";
+// src/hooks/useMobileSidebar.js
+import { useState, useCallback } from "react";
 
 export default function useMobileSidebar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const toggle = useCallback(() => {
+    setOpen((prev) => !prev);
+  }, []);
+
+  const close = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const openSidebar = useCallback(() => {
+    setOpen(true);
+  }, []);
 
   return {
-    mobileOpen,
-    openMobile: () => setMobileOpen(true),
-    closeMobile: () => setMobileOpen(false),
+    open,
+    toggle,
+    close,
+    openSidebar,
   };
 }

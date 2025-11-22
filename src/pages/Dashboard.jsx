@@ -1,43 +1,169 @@
-import Charts from "../components/Charts";
+import React, { useState, useEffect } from "react";
+import PageHeader from "../components/PageHeader";
+import { toast } from "react-hot-toast";
+import {
+  FiCpu,
+  FiCheckCircle,
+  FiAlertTriangle,
+  FiRefreshCw,
+  FiLock,
+} from "react-icons/fi";
 
 export default function Dashboard() {
+  const [license, setLicense] = useState(null);
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [checkingWorker, setCheckingWorker] = useState(false);
+  const [workerStatus, setWorkerStatus] = useState(null);
+
+  /* -------------------------------------------------------
+     LOAD LICENSE ON PAGE LOAD
+  ------------------------------------------------------- */
+  useEffect(() => {
+    window.api.loadSavedLicense().then((data) => {
+      setLicense(data);
+    });
+  }, []);
+
+  /* -------------------------------------------------------
+     WORKER STATUS CHECK
+  ------------------------------------------------------- */
+  const checkWorker = async () => {
+    setCheckingWorker(true);
+    toast.loading("Checking API connection…", { id: "wk" });
+
+    try {
+      const res = await window.api.sendSecureRequest("/rewrite", {
+        text: "test",
+        tone: "neutral",
+        style: "standard",
+      });
+
+      if (res?.error) {
+        setWorkerStatus("error");
+        toast.error("Worker error: " + res.error, { id: "wk" });
+      } else {
+        setWorkerStatus("ok");
+        toast.success("API connection OK", { id: "wk" });
+      }
+    } catch (err) {
+      setWorkerStatus("error");
+      toast.error("API unreachable", { id: "wk" });
+    }
+
+    setCheckingWorker(false);
+  };
+
+  /* -------------------------------------------------------
+     CHECK FOR APP UPDATES
+  ------------------------------------------------------- */
+  const checkUpdates = async () => {
+    setCheckingUpdates(true);
+    toast.loading("Checking for updates…", { id: "up" });
+
+    const res = await window.api.checkForUpdates();
+
+    if (!res.success) {
+      toast.error(res.message || "Update error", { id: "up" });
+      setCheckingUpdates(false);
+      return;
+    }
+
+    if (res.version) {
+      toast.success("Update available: v" + res.version, { id: "up" });
+    } else {
+      toast.success("No updates available", { id: "up" });
+    }
+
+    setCheckingUpdates(false);
+  };
+
   return (
-    <div className="text-gray-900">
+    <div className="page-container">
+      <PageHeader
+        title="Dashboard"
+        description="Overview of your QueryKiln installation."
+      />
 
-      <p className="text-gray-600 mb-8">
-        All-in-one on-page SEO, content, and analysis dashboard.
-      </p>
+      {/* LICENSE STATUS */}
+      <div className="card">
+        <h3 className="card-title">
+          <FiLock className="card-icon" />
+          License Status
+        </h3>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <StatCard label="SEO Health" value="78 / 100" />
-        <StatCard label="Content Pieces" value="12" />
-        <StatCard label="Analyzed this week" value="34" />
-        <StatCard label="AI Actions" value="Rewrites & Suggestions" />
+        {license ? (
+          <>
+            <p>
+              <strong>Status:</strong>{" "}
+              {license.dev
+                ? "Developer Mode"
+                : license.mode || "Unknown"}
+            </p>
+            <p>
+              <strong>License Key:</strong>{" "}
+              {license.licenseKey?.key
+                ? license.licenseKey.key.replace(/.(?=.{4})/g, "*")
+                : "Unavailable"}
+            </p>
+          </>
+        ) : (
+          <p>No license saved.</p>
+        )}
+
+        <a href="#/settings">
+          <button className="btn-secondary">Manage License</button>
+        </a>
       </div>
 
-      {/* Getting Started */}
-      <h3 className="text-xl font-bold mb-4">Getting Started</h3>
+      {/* WORKER STATUS */}
+      <div className="card">
+        <h3 className="card-title">
+          <FiCpu className="card-icon" />
+          API Connectivity
+        </h3>
 
-      <ol className="list-decimal ml-6 space-y-2 text-gray-700 mb-12">
-        <li>Go to <b>SEO Analyzer</b> and paste your content.</li>
-        <li>Use <b>AI Rewrite</b> to polish it.</li>
-        <li>Check <b>Keywords & SERP Preview</b>.</li>
-        <li>Optionally compare with <b>Competitors</b>.</li>
-      </ol>
+        {workerStatus === "ok" && (
+          <p className="success-text">
+            <FiCheckCircle /> Backend Worker is responding normally.
+          </p>
+        )}
 
-      {/* 📊 Charts Section */}
-      <Charts />
+        {workerStatus === "error" && (
+          <p className="error-text">
+            <FiAlertTriangle /> API is not responding.
+          </p>
+        )}
 
-    </div>
-  );
-}
+        {!workerStatus && <p>Run a connection test.</p>}
 
-function StatCard({ label, value }) {
-  return (
-    <div className="p-6 bg-gray-50 border border-gray-200 rounded-xl shadow-sm text-center">
-      <div className="text-gray-500">{label}</div>
-      <div className="text-2xl font-bold mt-1">{value}</div>
+        <button
+          className={`btn-primary ${
+            checkingWorker ? "btn-disabled" : ""
+          }`}
+          onClick={checkWorker}
+          disabled={checkingWorker}
+        >
+          {checkingWorker ? "Testing…" : "Test API Connection"}
+        </button>
+      </div>
+
+      {/* UPDATES */}
+      <div className="card">
+        <h3 className="card-title">
+          <FiRefreshCw className="card-icon" />
+          Updates
+        </h3>
+
+        <button
+          className={`btn-secondary ${
+            checkingUpdates ? "btn-disabled" : ""
+          }`}
+          onClick={checkUpdates}
+          disabled={checkingUpdates}
+        >
+          {checkingUpdates ? "Checking…" : "Check for Updates"}
+        </button>
+      </div>
     </div>
   );
 }

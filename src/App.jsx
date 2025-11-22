@@ -1,72 +1,115 @@
-import React, { useEffect, useState } from "react";
+// src/App.jsx
+import React, { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+
+import Layout from "./Layout";
+
+// Pages
+import Dashboard from "./pages/Dashboard";
+import AiRewrite from "./pages/AiRewrite";
+import GrammarFixer from "./pages/GrammarFixer";
+import KeywordResearch from "./pages/KeywordResearch";
+import SeoAnalyzer from "./pages/SeoAnalyzer";
+import BacklinkChecker from "./pages/BacklinkChecker";
+import CompetitorAnalysis from "./pages/CompetitorAnalysis";
+import ContentGap from "./pages/ContentGap";
+import PlagiarismChecker from "./pages/PlagiarismChecker";
+import SERPPreview from "./pages/SERPPreview";
+import Settings from "./pages/Settings";
+
+// Updater
 import UpdateModal from "./components/UpdateModal";
+import useUpdater from "./hooks/useUpdater";
 
-function App() {
-  const [updateStatus, setUpdateStatus] = useState(null);
-  const [appVersion, setAppVersion] = useState("dev");
+// Debug
+import { DebugProvider } from "./context/DebugContext";
+import DebugPanel from "./components/DebugPanel";
 
-  // Listen for update events from Electron (only works in production)
+export default function App() {
+  // Updater hook
+  const {
+    updateAvailable,
+    remoteVersion,
+    downloadProgress,
+    downloaded,
+    checking,
+    checkForUpdates,
+    startDownload,
+    installUpdate,
+  } = useUpdater();
+
+  // Update Modal State
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+
   useEffect(() => {
-    // Check if preload API exists (it won’t exist during Vite dev)
-    if (window.electronAPI?.onUpdateMessage) {
-      window.electronAPI.onUpdateMessage((data) => {
-        setUpdateStatus({
-          status: data.message,
-          info: data.data || null,
-          progress: data.data?.percent ? data.data : null,
-        });
-      });
-    } else {
-      console.warn("Electron API not available (likely running in Vite dev mode).");
-    }
+    if (updateAvailable) setUpdateModalOpen(true);
+  }, [updateAvailable]);
 
-    // Get version (only available in production)
-    if (window.electronAPI?.getAppVersion) {
-      window.electronAPI.getAppVersion().then(setAppVersion);
-    }
-  }, []);
-
-  const handleManualCheck = () => {
-    setUpdateStatus({ status: "checking" });
-
-    if (window.electronAPI?.checkForUpdates) {
-      window.electronAPI.checkForUpdates();
-    } else {
-      alert("Updates cannot be checked in dev mode.");
-    }
-  };
+  const openUpdateModal = () => setUpdateModalOpen(true);
+  const closeUpdateModal = () => setUpdateModalOpen(false);
 
   return (
-    <div className="w-full h-full bg-gray-50 text-gray-900">
-      
-      {/* Auto-update modal */}
-      <UpdateModal update={updateStatus} />
+    <DebugProvider>
+      {/* Debug Panel */}
+      <DebugPanel />
 
-      {/* Header */}
-      <header className="p-4 bg-white shadow flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Querykiln</h1>
+      {/* Floating debug toggle button */}
+      <button
+        onClick={() => {
+          const evt = new CustomEvent("debug-open");
+          window.dispatchEvent(evt);
+        }}
+        style={{
+          position: "fixed",
+          right: "20px",
+          bottom: "20px",
+          padding: "10px 20px",
+          background: "#0f0",
+          color: "#000",
+          zIndex: 999999,
+          borderRadius: "6px",
+          fontWeight: "bold",
+        }}
+      >
+        DEBUG
+      </button>
 
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-600">v{appVersion}</span>
+      {/* App Layout */}
+      <Layout
+        openUpdateModal={openUpdateModal}
+        checkForUpdates={checkForUpdates}
+        updateAvailable={updateAvailable}
+        checking={checking}
+      >
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/rewrite" element={<AiRewrite />} />
+          <Route path="/grammar" element={<GrammarFixer />} />
+          <Route path="/keywords" element={<KeywordResearch />} />
+          <Route path="/seo" element={<SeoAnalyzer />} />
+          <Route path="/backlinks" element={<BacklinkChecker />} />
+          <Route path="/competitors" element={<CompetitorAnalysis />} />
+          <Route path="/gap" element={<ContentGap />} />
+          <Route path="/plagiarism" element={<PlagiarismChecker />} />
+          <Route path="/serp" element={<SERPPreview />} />
+          <Route path="/settings" element={<Settings />} />
 
-          <button
-            onClick={handleManualCheck}
-            className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm"
-          >
-            Check Updates
-          </button>
-        </div>
-      </header>
+          {/* fallback */}
+          <Route path="*" element={<Dashboard />} />
+        </Routes>
+      </Layout>
 
-      {/* Main */}
-      <main className="p-6">
-        <h2 className="text-xl font-medium mb-3">Welcome to Querykiln</h2>
-        <p className="text-gray-700">
-          Your AI-powered SEO toolkit is running locally.
-        </p>
-      </main>
-    </div>
+      <UpdateModal
+        open={updateModalOpen}
+        updateAvailable={updateAvailable}
+        remoteVersion={remoteVersion}
+        downloadProgress={downloadProgress}
+        downloaded={downloaded}
+        checking={checking}
+        onClose={closeUpdateModal}
+        onDownload={startDownload}
+        onInstall={installUpdate}
+      />
+    </DebugProvider>
   );
 }
-
-export default App;
